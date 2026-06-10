@@ -1,20 +1,30 @@
-const PRODUTOS_STORAGE_KEY = 'produtosLoja';
+const API_URL = 'http://localhost:5000';
 
-function renderizarProdutos() {
+async function renderizarProdutos() {
 	const container = document.getElementById('card-produto');
-	const produtos = JSON.parse(localStorage.getItem(PRODUTOS_STORAGE_KEY)) || [];
+	if (!container) return;
 
-	if (produtos.length === 0) {
-		container.innerHTML = '<p class="ms-3">Nenhum produto cadastrado ainda.</p>';
-		return;
-	}
+	try {
+		const resposta = await fetch(`${API_URL}/produtos`);
 
-	const cardsHtml = produtos.map((produto) => {
-		const imagemHtml = produto.imagem
-			? `<img src="${produto.imagem}" class="card-img-top" alt="${produto.nome}">`
-			: '';
+		if (!resposta.ok) {
+			container.innerHTML = '<p class="ms-3">Erro ao carregar produtos.</p>';
+			return;
+		}
 
-		return `
+		const produtos = await resposta.json();
+
+		if (produtos.length === 0) {
+			container.innerHTML = '<p class="ms-3">Nenhum produto cadastrado ainda.</p>';
+			return;
+		}
+
+		const cardsHtml = produtos.map((produto) => {
+			const imagemHtml = produto.imagem
+				? `<img src="${produto.imagem}" class="card-img-top" alt="${produto.nome}">`
+				: '';
+
+			return `
 			<div class="card m-2" style="width: 18rem;">
 				${imagemHtml}
 				<div class="card-body">
@@ -23,9 +33,13 @@ function renderizarProdutos() {
 				</div>
 			</div>
 		`;
-	}).join('');
+		}).join('');
 
-	container.innerHTML = cardsHtml;
+		container.innerHTML = cardsHtml;
+	} catch (erro) {
+		container.innerHTML = '<p class="ms-3">Erro ao conectar com a API. Verifique se o servidor esta rodando.</p>';
+	}
 }
 
 document.addEventListener('DOMContentLoaded', renderizarProdutos);
+window.addEventListener('pageshow', renderizarProdutos);
