@@ -29,7 +29,7 @@
             Links Úteis
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="Cadastro.html">Cadastro de produtos</a></li>
+            <li><a class="dropdown-item" id="link-cadastro" href="Cadastro.html">Cadastro de produtos</a></li>
             <li><a class="dropdown-item" href="lista.html">Lista de produtos</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="Sobrenós.html">Sobre nós</a></li>
@@ -43,8 +43,35 @@
         <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
         <button class="btn btn-outline-success" type="submit">Search</button>
       </form>
+      <div class="d-flex align-items-center ms-3" id="navbar-auth">
+        <!-- preenchido pelo JS -->
+      </div>
     </div>
   </div>
 </nav>
+<script>
+(function() {
+    const usuario = JSON.parse(sessionStorage.getItem('usuario') || 'null');
+    const navbarAuth  = document.getElementById('navbar-auth');
+    const linkCadastro = document.getElementById('link-cadastro');
+
+    if (usuario) {
+        navbarAuth.innerHTML = `
+            <span class="navbar-text me-2">Olá, <strong>${usuario.email}</strong> (${usuario.tipo})</span>
+            <button class="btn btn-outline-danger btn-sm" onclick="logout()">Sair</button>`;
+        if (usuario.tipo !== 'vendedor') {
+            linkCadastro.parentElement.style.display = 'none';
+        }
+    } else {
+        navbarAuth.innerHTML = '<a href="Login.html" class="btn btn-outline-primary btn-sm">Entrar</a>';
+        linkCadastro.parentElement.style.display = 'none';
+    }
+
+    window.logout = function() {
+        sessionStorage.removeItem('usuario');
+        window.location.reload();
+    };
+})();
+</script>
 </body>
 </html>

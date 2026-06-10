@@ -14,8 +14,19 @@
 <nav class="navbar bg-body-tertiary">
   <div class="container-fluid">
     <a class="navbar-brand" href="PaginaInicial.html">Inicio</a>
+    <div class="ms-auto d-flex align-items-center" id="navbar-auth"></div>
   </div>
 </nav>
+<script>
+(function() {
+    const usuario = JSON.parse(sessionStorage.getItem('usuario') || 'null');
+    const el = document.getElementById('navbar-auth');
+    if (usuario) {
+        el.innerHTML = `<span class="navbar-text me-2">${usuario.email} (${usuario.tipo})</span>
+            <button class="btn btn-outline-danger btn-sm" onclick="sessionStorage.removeItem('usuario');window.location.href='PaginaInicial.html'">Sair</button>`;
+    }
+})();
+</script>
 <nav class="navbar bg-body-tertiary">
   <form class="container-fluid justify-content-start">
     <button onclick="OnClickCadastrar()" id="cadastrar-produto" class="btn btn-outline-success me-2" type="button">Cadastrar produto</button>
@@ -24,6 +35,16 @@
 </nav>
 <div id="cards-container" class="mt-3"></div>
 <div id="remover-container" class="mt-3"></div>
+<script>
+    // Proteção: somente vendedores podem acessar esta página
+    (function() {
+        const usuario = JSON.parse(sessionStorage.getItem('usuario') || 'null');
+        if (!usuario || usuario.tipo !== 'vendedor') {
+            alert('Acesso restrito a vendedores. Faça login com uma conta vendedor.');
+            window.location.href = 'Login.html';
+        }
+    })();
+</script>
 <script src="../JavaScript/Cadastro.js" ></script>
 </body>
 </html>

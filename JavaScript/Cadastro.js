@@ -1,16 +1,4 @@
-const PRODUTOS_STORAGE_KEY = 'produtosLoja';
-
-function lerProdutosStorage() {
-    const produtosSalvos = localStorage.getItem(PRODUTOS_STORAGE_KEY);
-    if (!produtosSalvos) {
-        return [];
-    }
-    return JSON.parse(produtosSalvos);
-}
-
-function salvarProdutosStorage(produtos) {
-    localStorage.setItem(PRODUTOS_STORAGE_KEY, JSON.stringify(produtos));
-}
+const API_URL = 'http://localhost:5000';
 
 function OnClickCadastrar() {
     const cardsHTML = `
@@ -40,11 +28,11 @@ function OnClickCadastrar() {
     configurarDragAndDrop();
 }
 
-function OnClickSalvarCadastro() {
+async function OnClickSalvarCadastro() {
     const nomeProduto = document.getElementById('nome-produto').value.trim();
     const precoProduto = document.getElementById('preco').value;
     const imagemElemento = document.getElementById('imagem-produto');
-    const imagemProduto = imagemElemento.src;
+    const imagemProduto = imagemElemento.style.display === 'none' ? '' : imagemElemento.src;
 
     if (!nomeProduto || !precoProduto) {
         alert('Preencha nome e preco do produto.');
@@ -54,15 +42,28 @@ function OnClickSalvarCadastro() {
     const produto = {
         nome: nomeProduto,
         preco: Number(precoProduto),
-        imagem: imagemElemento.style.display === 'none' ? '' : imagemProduto
+        imagem: imagemProduto
     };
 
-    const produtos = lerProdutosStorage();
-    produtos.push(produto);
-    salvarProdutosStorage(produtos);
+    try {
+        const resposta = await fetch(`${API_URL}/produtos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(produto)
+        });
 
-    limparFormularioCadastro();
-    alert('Produto salvo com sucesso!');
+        if (!resposta.ok) {
+            const erro = await resposta.json();
+            alert('Erro ao salvar produto: ' + (erro.erro || 'Erro desconhecido'));
+            return;
+        }
+
+        limparFormularioCadastro();
+        alert('Produto salvo com sucesso!');
+        window.location.href = 'lista.html';
+    } catch (erro) {
+        alert('Erro ao conectar com a API. Verifique se o servidor esta rodando.');
+    }
 }
 
 function limparFormularioCadastro() {
@@ -169,7 +170,7 @@ function OnClickRemoverCadastro() {
 
 
 }
-function OnClickRemoverProduto() {
+async function OnClickRemoverProduto() {
     const nomeProdutoRemover = document.getElementById('nome-produto-remover').value.trim();
 
     if (!nomeProdutoRemover) {
@@ -177,20 +178,20 @@ function OnClickRemoverProduto() {
         return;
     }
 
-    const produtos = lerProdutosStorage();
-    const nomeNormalizado = nomeProdutoRemover.toLowerCase();
-    const indiceProduto = produtos.findIndex((produto) => {
-        return produto.nome && produto.nome.toLowerCase() === nomeNormalizado;
-    });
+    try {
+        const resposta = await fetch(`${API_URL}/produtos/nome/${encodeURIComponent(nomeProdutoRemover)}`, {
+            method: 'DELETE'
+        });
 
-    if (indiceProduto === -1) {
-        alert('Produto nao encontrado.');
-        return;
+        if (!resposta.ok) {
+            const erro = await resposta.json();
+            alert('Erro: ' + (erro.erro || 'Produto nao encontrado'));
+            return;
+        }
+
+        document.getElementById('nome-produto-remover').value = '';
+        alert('Produto removido com sucesso!');
+    } catch (erro) {
+        alert('Erro ao conectar com a API. Verifique se o servidor esta rodando.');
     }
-
-    produtos.splice(indiceProduto, 1);
-    salvarProdutosStorage(produtos);
-
-    document.getElementById('nome-produto-remover').value = '';
-    alert('Produto removido com sucesso!');
 }
